@@ -55,8 +55,8 @@
                 "CidrBlock": {
                     "Ref": "VpcCIDR"
                 },
-                "EnableDnsSupport": "false",
-                "EnableDnsHostnames": "false",
+                "EnableDnsSupport": "true",
+                "EnableDnsHostnames": "true",
                 "InstanceTenancy": "default",
                 "Tags": [
                     {
@@ -136,14 +136,14 @@
                     {
                         "Key": "Name",
                         "Value": {
-							"Fn::Join": [
+                            "Fn::Join": [
                                 ":",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
                                     },
                                     {
-										"Ref": "SubnetAName"
+                                        "Ref": "SubnetAName"
                                     }
                                 ]
                             ]
@@ -176,14 +176,14 @@
                     {
                         "Key": "Name",
                         "Value": {
-							"Fn::Join": [
+                            "Fn::Join": [
                                 ":",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
                                     },
                                     {
-										"Ref": "SubnetBName"
+                                        "Ref": "SubnetBName"
                                     }
                                 ]
                             ]
@@ -216,14 +216,14 @@
                     {
                         "Key": "Name",
                         "Value": {
-							"Fn::Join": [
+                            "Fn::Join": [
                                 ":",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
                                     },
                                     {
-										"Ref": "SubnetCName"
+                                        "Ref": "SubnetCName"
                                     }
                                 ]
                             ]
@@ -240,16 +240,16 @@
                 },
                 "Tags": [
                     {
-						"Key": "Name",
-						"Value": {
-							"Fn::Join": [
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
                                 ":",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
                                     },
                                     {
-										"Ref": "RouteTableName"
+                                        "Ref": "RouteTableName"
                                     }
                                 ]
                             ]
@@ -305,5 +305,64 @@
             }
         }
     },
-    "Outputs": {}
+    "Outputs": {
+        "VPC": {
+            "Description": "A reference to the created VPC",
+            "Value": {
+                "Ref": "VPC"
+            },
+            "Export": {
+                "Name": "VPC"
+            }
+        },
+        "PublicSubnets": {
+            "Description": "A list of the public subnets",
+            "Value": {
+                "Fn::Join": [
+                    ",",
+                    [
+                        {
+                            "Ref": "PublicSubnetA"
+                        },
+                        {
+                            "Ref": "PublicSubnetB"
+                        },
+                        {
+                            "Ref": "PublicSubnetC"
+                        }
+                    ]
+                ]
+            },
+            "Export": {
+                "Name": "ListOfPublicSubnet"
+            }
+        },
+        "PublicSubnet1": {
+            "Description": "A reference to the public subnet in the 1st Availability Zone",
+            "Value": {
+                "Ref": "PublicSubnetA"
+            },
+            "Export": {
+                "Name": "PublicSubnetA"
+            }
+        },
+        "PublicSubnet2": {
+            "Description": "A reference to the public subnet in the 2nd Availability Zone",
+            "Value": {
+                "Ref": "PublicSubnetB"
+            },
+            "Export": {
+                "Name": "PublicSubnetB"
+            }
+        },
+        "PublicSubnet3": {
+            "Description": "A reference to the public subnet in the 3rd Availability Zone",
+            "Value": {
+                "Ref": "PublicSubnetC"
+            },
+            "Export": {
+                "Name": "PublicSubnetC"
+            }
+        }
+    }
 }
