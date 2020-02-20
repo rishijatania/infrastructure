@@ -312,7 +312,17 @@
                 "Ref": "VPC"
             },
             "Export": {
-                "Name": "VPC"
+                "Name": {
+                    "Fn::Join": [
+                        ":",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "VPC"
+                        ]
+                    ]
+                }
             }
         },
         "PublicSubnets": {
@@ -334,7 +344,17 @@
                 ]
             },
             "Export": {
-                "Name": "ListOfPublicSubnet"
+                "Name": {
+					"Fn::Join": [
+                        ":",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "ListOfPublicSubnet"
+                        ]
+                    ]
+                }
             }
         },
         "PublicSubnet1": {
@@ -343,7 +363,17 @@
                 "Ref": "PublicSubnetA"
             },
             "Export": {
-                "Name": "PublicSubnetA"
+                "Name": {
+                    "Fn::Join": [
+                        ":",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "PublicSubnetA"
+                        ]
+                    ]
+                }
             }
         },
         "PublicSubnet2": {
@@ -352,7 +382,17 @@
                 "Ref": "PublicSubnetB"
             },
             "Export": {
-                "Name": "PublicSubnetB"
+                "Name": {
+					"Fn::Join": [
+                        ":",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "PublicSubnetB"
+                        ]
+                    ]
+                }
             }
         },
         "PublicSubnet3": {
@@ -361,7 +401,17 @@
                 "Ref": "PublicSubnetC"
             },
             "Export": {
-                "Name": "PublicSubnetC"
+                "Name": {
+                    "Fn::Join": [
+                        ":",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "PublicSubnetC"
+                        ]
+                    ]
+                }
             }
         }
     }
