@@ -141,20 +141,20 @@
         "WEBAPPENV": {
             "Description": "Please enter the WebApp ENV i.e. Dev or Prod ",
             "Type": "String"
-		},
-		"WEBAPPPORT": {
-			"Description": "Please enter the WebApp PORT ",
+        },
+        "WEBAPPPORT": {
+            "Description": "Please enter the WebApp PORT ",
             "Type": "String"
-		},
+        },
         "AllocatedStorageRDS": {
             "Description": "Please enter the storeage size for RDS ",
             "Type": "Number"
-		},
-		"DBEngineVersion": {
-			"Description": "Please enter the RDS DB Version",
-			"Type": "String",
-			"Default": "8.0.15"
-		}
+        },
+        "DBEngineVersion": {
+            "Description": "Please enter the RDS DB Version",
+            "Type": "String",
+            "Default": "8.0.15"
+        }
     },
     "Resources": {
         "VPC": {
@@ -422,7 +422,9 @@
                     "Statement": [
                         {
                             "Action": [
-                                "s3:*"
+                                "s3:PutObject",
+                                "s3:GetObject",
+                                "s3:DeleteObject"
                             ],
                             "Effect": "Allow",
                             "Resource": [
@@ -803,62 +805,62 @@
                         "Fn::Join": [
                             "",
                             [
-								"#!/bin/bash \n",
-								"sudo apt-get update -y\n",
-								"sudo apt-get install mysql-client -y \n",
-								"sudo apt-get install unzip -y \n",
-								"mkdir /home/ubuntu/cloud \n",
+                                "#!/bin/bash \n",
+                                "sudo apt-get update -y\n",
+                                "sudo apt-get install mysql-client -y \n",
+                                "sudo apt-get install unzip -y \n",
+                                "mkdir /home/ubuntu/cloud \n",
                                 "echo export DB_HOST=",
                                 {
                                     "Fn::GetAtt": [
                                         "RDSDBInstance",
                                         "Endpoint.Address"
-                                    ]	
-								},
-								" >> /etc/profile \n",
+                                    ]
+                                },
+                                " >> /etc/profile \n",
                                 "echo export DB_DIALECT=",
                                 {
                                     "Ref": "DBEngine"
                                 },
-								" >> /etc/profile \n",
-								"echo export DB_PORT=",
-								{
-									"Fn::GetAtt": [
-										"RDSDBInstance",
-										"Endpoint.Port"
-									]
-								},
-								" >> /etc/profile \n",
-								"echo export DB_NAME=",
+                                " >> /etc/profile \n",
+                                "echo export DB_PORT=",
+                                {
+                                    "Fn::GetAtt": [
+                                        "RDSDBInstance",
+                                        "Endpoint.Port"
+                                    ]
+                                },
+                                " >> /etc/profile \n",
+                                "echo export DB_NAME=",
                                 {
                                     "Ref": "RDSDBName"
                                 },
-								" >> /etc/profile \n",
-								"echo export DB_USER=",
+                                " >> /etc/profile \n",
+                                "echo export DB_USER=",
                                 {
                                     "Ref": "DBUsername"
                                 },
-								" >> /etc/profile \n",
-								"echo export DB_PSWD=",
+                                " >> /etc/profile \n",
+                                "echo export DB_PSWD=",
                                 {
                                     "Ref": "DBPassword"
                                 },
-								" >> /etc/profile \n",
-								"echo export APP=",
+                                " >> /etc/profile \n",
+                                "echo export APP=",
                                 {
                                     "Ref": "WEBAPPENV"
                                 },
-								" >> /etc/profile \n",
-								"echo export PORT=",
+                                " >> /etc/profile \n",
+                                "echo export PORT=",
                                 {
                                     "Ref": "WEBAPPPORT"
                                 },
-								" >> /etc/profile \n",
-								"echo export S3_BUCKET=",
-								{
+                                " >> /etc/profile \n",
+                                "echo export S3_BUCKET=",
+                                {
                                     "Ref": "S3Bucket"
                                 },
-								" >> /etc/profile \n"
+                                " >> /etc/profile \n"
                             ]
                         ]
                     }
