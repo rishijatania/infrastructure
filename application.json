@@ -154,6 +154,11 @@
             "Description": "Please enter the RDS DB Version",
             "Type": "String",
             "Default": "8.0.15"
+        },
+        "DBType": {
+            "Description": "Please enter the DB type for ENV if EC2instance",
+            "Type": "String",
+            "Default": "mysql"
         }
     },
     "Resources": {
@@ -484,7 +489,7 @@
                             "Effect": "Allow",
                             "Principal": {
                                 "Service": [
-                                    "s3.amazonaws.com"
+                                    "ec2.amazonaws.com"
                                 ]
                             }
                         }
@@ -630,6 +635,12 @@
                             }
                         }
                     ]
+                },
+                "PublicAccessBlockConfiguration": {
+                    "BlockPublicAcls": "true",
+                    "BlockPublicPolicy": "true",
+                    "IgnorePublicAcls": "true",
+                    "RestrictPublicBuckets": "true"
                 },
                 "LifecycleConfiguration": {
                     "Rules": [
@@ -809,7 +820,6 @@
                                 "sudo apt-get update -y\n",
                                 "sudo apt-get install mysql-client -y \n",
                                 "sudo apt-get install unzip -y \n",
-                                "mkdir /home/ubuntu/cloud \n",
                                 "echo export DB_HOST=",
                                 {
                                     "Fn::GetAtt": [
@@ -820,7 +830,7 @@
                                 " >> /etc/profile \n",
                                 "echo export DB_DIALECT=",
                                 {
-                                    "Ref": "DBEngine"
+                                    "Ref": "DBType"
                                 },
                                 " >> /etc/profile \n",
                                 "echo export DB_PORT=",
