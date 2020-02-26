@@ -860,6 +860,11 @@
                                 {
                                     "Ref": "S3Bucket"
                                 },
+                                " >> /etc/profile \n",
+                                "echo export AWS_REGION=",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
                                 " >> /etc/profile \n"
                             ]
                         ]
