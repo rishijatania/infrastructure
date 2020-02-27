@@ -9,10 +9,10 @@
 2. Configure your aws profile using the following command:
 ```zsh
 $ aws configure --profile produser
-AKIAI44QH8DHBEXAMPLE
-je7MtGbClwBF/2Zp9Utk/h3yCo8nvbEXAMPLEKEY
-us-east-1
-text
+AWS Access Key ID [None]: <AccessID>
+AWS Secret Access Key [None]: <AccessKey>
+Default region name [None]: <region>
+Default output format [None]: 
 ```
 
 ## Steps to create AWS Infra Stack
