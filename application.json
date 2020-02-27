@@ -818,8 +818,6 @@
                             [
                                 "#!/bin/bash \n",
                                 "sudo apt-get update -y\n",
-                                "sudo apt-get install mysql-client -y \n",
-                                "sudo apt-get install unzip -y \n",
                                 "echo export DB_HOST=",
                                 {
                                     "Fn::GetAtt": [
