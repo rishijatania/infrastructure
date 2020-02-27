@@ -988,6 +988,101 @@
                     ]
                 }
             }
+        },
+        "S3ManagedPolicyInfo": {
+            "Description": "A reference to the S3ManagedPolicy",
+            "Value": {
+                "Ref": "S3ManagedPolicy"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "S3ManagedPolicy"
+                        ]
+                    ]
+                }
+            }
+        },
+        "EC2IAMRoleS3": {
+            "Description": "A reference to the EC2IAMRole attached to EC2",
+            "Value": {
+                "Ref": "EC2IAMRole"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "EC2IAMRoleS3"
+                        ]
+                    ]
+                }
+            }
+        },
+        "S3BucketInfo": {
+            "Description": "A reference to the S3Bucket",
+            "Value": {
+                "Ref": "S3Bucket"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "S3Bucket"
+                        ]
+                    ]
+                }
+            }
+        },
+        "RDSDBInstanceInfo": {
+            "Description": "A reference to the RDSDBInstance",
+            "Value": {
+                "Ref": "RDSDBInstance"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "RDSDBInstance"
+                        ]
+                    ]
+                }
+            }
+        },
+        "EC2InstanceInfo": {
+            "Description": "A reference to the EC2Instance",
+            "Value": {
+                "Ref": "EC2Instance"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "EC2Instance"
+                        ]
+                    ]
+                }
+            }
         }
     }
 }
