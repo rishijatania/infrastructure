@@ -55,7 +55,7 @@
         "IAMRoleNameForEC2": {
             "Description": "Please enter the Name for IAM role that will allow EC2 instances to perform operation on S3 buckets.",
             "Type": "String",
-            "Default": "EC2-CSYE6225"
+            "Default": "CodeDeployEC2ServiceRole"
         },
         "EC2SecurityGroupName": {
             "Description": "Please enter the Group Name for Security group attached to the EC2 instances",
@@ -159,6 +159,88 @@
             "Description": "Please enter the DB type for ENV if EC2instance",
             "Type": "String",
             "Default": "mysql"
+        },
+        "ArtifactS3EC2PolicyName": {
+            "Description": "Please enter the Name for S3 Policy that will allow EC2 instances to perform READ operation on Artifact S3 buckets.",
+            "Type": "String",
+            "Default": "CodeDeploy-EC2-S3"
+        },
+        "ArtifactS3CircleCIPolicyName": {
+            "Description": "Please enter the Name for S3 Policy that will allow Circle CI to perform operations on Artifact S3 buckets.",
+            "Type": "String",
+            "Default": "CircleCI-Upload-To-S3"
+        },
+        "S3ArtifactBucketName": {
+            "Description": "Please enter the S3 Artifact bucket name for EC2",
+            "Type": "String"
+        },
+        "CircleCIIAMRoleName": {
+            "Type": "String",
+            "Description": "Name of existing circleci Role you want to add to the newly created Managed Policy",
+            "Default": "circleci"
+        },
+        "CircleCIEC2PackerPolicyName": {
+            "Description": "Please enter the Name for EC2 Policy that will allow Circle CI to perform operations of creating an AMI",
+            "Type": "String",
+            "Default": "CircleCI-EC2-AMI"
+        },
+        "CircleCICodeDeployPolicyName": {
+            "Description": "Please enter the Name for CircleCi Policy that allows CircleCI to call CodeDeploy APIs to initiate application deployment on EC2 instances.",
+            "Type": "String",
+            "Default": "CircleCI-Code-Deploy"
+        },
+        "CodeDeployComputePlatform": {
+            "Description": "Please enter the compute platform for codedeploy",
+            "Type": "String",
+            "AllowedValues": [
+                "ECS",
+                "Lambda",
+                "Server"
+            ],
+            "Default": "Server"
+        },
+        "CodeDeployApplicationName": {
+            "Description": "Please enter the codedeploy application name",
+            "Type": "String",
+            "Default": "csye6225-webapp"
+        },
+        "CodeDeployServiceRoleName": {
+            "Description": "Please enter the codedeploy role name",
+            "Type": "String",
+            "Default": "CodeDeployServiceRole"
+        },
+        "AWSCodeDeployRoleARN": {
+            "Description": "Please enter the AWSCodeDeployRoleArn ",
+            "Type": "String",
+            "Default": "arn:aws:iam::aws:policy/service-role/AWSCodeDeployRole"
+        },
+        "CodeDeployDeploymentGroupName": {
+            "Description": "Please enter the Deployment group name for codedeploy",
+            "Type": "String",
+            "Default": "csye6225-webapp-deployment"
+        },
+        "CodeDeployDeploymentType": {
+            "Description": "Please enter the Deployment type for codedeploy",
+            "Type": "String",
+            "AllowedValues": [
+                "IN_PLACE",
+                "BLUE_GREEN"
+            ],
+            "Default": "IN_PLACE"
+        },
+        "CodeDeployDeploymentOption": {
+            "Description": "Indicates whether to route deployment traffic behind a load balancer",
+            "Type": "String",
+            "AllowedValues": [
+                "WITH_TRAFFIC_CONTROL",
+                "WITHOUT_TRAFFIC_CONTROL"
+            ],
+            "Default": "WITHOUT_TRAFFIC_CONTROL"
+        },
+        "CodeDeployDeploymentConfigName": {
+            "Description": "Please enter the Deployment Config name for codedeploy",
+            "Type": "String",
+            "Default": "CodeDeployDefault.AllAtOnce"
         }
     },
     "Resources": {
@@ -417,11 +499,260 @@
                 }
             }
         },
+        "CircleCIS3Policy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Policy for operations on S3 bucket to Store Artifact Files",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "s3:PutObject",
+                                "s3:Get*",
+                                "s3:List*"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": [
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            {
+                                                "Ref": "S3ArtifactBucketName"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            {
+                                                "Ref": "S3ArtifactBucketName"
+                                            },
+                                            "/*"
+                                        ]
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Users": {
+                    "Ref": "CircleCIIAMRoleName"
+                },
+                "ManagedPolicyName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            {
+                                "Ref": "ArtifactS3CircleCIPolicyName"
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
+        "CircleCICodeDeployPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Policy allows CircleCI to call CodeDeploy APIs to initiate application deployment on EC2 instances",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "codedeploy:RegisterApplicationRevision",
+                                "codedeploy:GetApplicationRevision"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Join": [
+                                        "-",
+                                        [
+                                            "arn:aws:codedeploy:",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            ":",
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            ":application:",
+                                            {
+                                                "Ref": "CodeDeployApplication"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "codedeploy:CreateDeployment",
+                                "codedeploy:GetDeployment"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Sub": "arn:aws:codedeploy:${AWS::Region}:${AWS::AccountId}:deploymentgroup:${CodeDeployApplication}/${CodeDeployDeploymentGroup}"
+                                }
+                            ]
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "codedeploy:GetDeploymentConfig"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Join": [
+                                        "-",
+                                        [
+                                            "arn:aws:codedeploy:",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            ":",
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            ":deploymentconfig:CodeDeployDefault.OneAtATime"
+                                        ]
+                                    ]
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "-",
+                                        [
+                                            "arn:aws:codedeploy:",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            ":",
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            ":deploymentconfig:CodeDeployDefault.HalfAtATime"
+                                        ]
+                                    ]
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "-",
+                                        [
+                                            "arn:aws:codedeploy:",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            ":",
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            ":deploymentconfig:CodeDeployDefault.AllAtOnce"
+                                        ]
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Users": {
+                    "Ref": "CircleCIIAMRoleName"
+                },
+                "ManagedPolicyName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            {
+                                "Ref": "CircleCICodeDeployPolicyName"
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
+        "CircleCIEC2PackerPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Policy for creating AMI through packer",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "ec2:AttachVolume",
+                                "ec2:AuthorizeSecurityGroupIngress",
+                                "ec2:CopyImage",
+                                "ec2:CreateImage",
+                                "ec2:CreateKeypair",
+                                "ec2:CreateSecurityGroup",
+                                "ec2:CreateSnapshot",
+                                "ec2:CreateTags",
+                                "ec2:CreateVolume",
+                                "ec2:DeleteKeyPair",
+                                "ec2:DeleteSecurityGroup",
+                                "ec2:DeleteSnapshot",
+                                "ec2:DeleteVolume",
+                                "ec2:DeregisterImage",
+                                "ec2:DescribeImageAttribute",
+                                "ec2:DescribeImages",
+                                "ec2:DescribeInstances",
+                                "ec2:DescribeInstanceStatus",
+                                "ec2:DescribeRegions",
+                                "ec2:DescribeSecurityGroups",
+                                "ec2:DescribeSnapshots",
+                                "ec2:DescribeSubnets",
+                                "ec2:DescribeTags",
+                                "ec2:DescribeVolumes",
+                                "ec2:DetachVolume",
+                                "ec2:GetPasswordData",
+                                "ec2:ModifyImageAttribute",
+                                "ec2:ModifyInstanceAttribute",
+                                "ec2:ModifySnapshotAttribute",
+                                "ec2:RegisterImage",
+                                "ec2:RunInstances",
+                                "ec2:StopInstances",
+                                "ec2:TerminateInstances"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Users": {
+                    "Ref": "CircleCIIAMRoleName"
+                },
+                "ManagedPolicyName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            {
+                                "Ref": "CircleCIEC2PackerPolicyName"
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
         "S3ManagedPolicy": {
             "Type": "AWS::IAM::ManagedPolicy",
             "DependsOn": "S3Bucket",
             "Properties": {
-                "Description": "Policy for operations on S3 bucket",
+                "Description": "Policy for operations on S3 bucket to Store Application Files",
                 "PolicyDocument": {
                     "Version": "2012-10-17",
                     "Statement": [
@@ -475,9 +806,108 @@
                 }
             }
         },
+        "CodeDeployEC2S3Policy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "Description": "Policy for operations on S3 bucket for artifacts",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "s3:Get*",
+                                "s3:List*"
+                            ],
+                            "Effect": "Allow",
+                            "Resource": [
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            {
+                                                "Ref": "S3ArtifactBucketName"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            {
+                                                "Ref": "S3ArtifactBucketName"
+                                            },
+                                            "/*"
+                                        ]
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "ManagedPolicyName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            {
+                                "Ref": "ArtifactS3EC2PolicyName"
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
+        "CodeDeployServiceRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "codedeploy.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Path": "/",
+                "ManagedPolicyArns": [
+                    {
+                        "Ref": "AWSCodeDeployRoleARN"
+                    }
+                ],
+                "RoleName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            {
+                                "Ref": "CodeDeployServiceRoleName"
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
         "EC2IAMRole": {
             "Type": "AWS::IAM::Role",
-            "DependsOn": "S3ManagedPolicy",
+            "DependsOn": [
+                "S3ManagedPolicy",
+                "CodeDeployEC2S3Policy"
+            ],
             "Properties": {
                 "AssumeRolePolicyDocument": {
                     "Version": "2012-10-17",
@@ -499,6 +929,9 @@
                 "ManagedPolicyArns": [
                     {
                         "Ref": "S3ManagedPolicy"
+                    },
+                    {
+                        "Ref": "CodeDeployEC2S3Policy"
                     }
                 ],
                 "RoleName": {
@@ -525,6 +958,71 @@
                         "Ref": "EC2IAMRole"
                     }
                 ]
+            }
+        },
+        "CodeDeployApplication": {
+            "Type": "AWS::CodeDeploy::Application",
+            "Properties": {
+                "ApplicationName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            {
+                                "Ref": "CodeDeployApplicationName"
+                            }
+                        ]
+                    ]
+                },
+                "ComputePlatform": {
+                    "Ref": "CodeDeployComputePlatform"
+                }
+            }
+        },
+        "CodeDeployDeploymentGroup": {
+            "Type": "AWS::CodeDeploy::DeploymentGroup",
+            "DependsOn": "CodeDeployServiceRole",
+            "Properties": {
+                "ApplicationName": {
+                    "Ref": "CodeDeployApplication"
+                },
+                "AutoRollbackConfiguration": {
+                    "Enabled": "true",
+                    "Events": [
+                        "DEPLOYMENT_FAILURE"
+                    ]
+                },
+                "DeploymentConfigName": {
+                    "Ref": "CodeDeployDeploymentConfigName"
+                },
+                "DeploymentGroupName": {
+                    "Ref": "CodeDeployDeploymentGroupName"
+                },
+                "DeploymentStyle": {
+                    "DeploymentOption": {
+                        "Ref": "CodeDeployDeploymentOption"
+                    },
+                    "DeploymentType": {
+                        "Ref": "CodeDeployDeploymentType"
+                    }
+                },
+                "Ec2TagFilters": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}-EC2Instance"
+                        },
+                        "Type": "KEY_AND_VALUE"
+                    }
+                ],
+                "ServiceRoleArn": {
+                    "Fn::GetAtt": [
+                        "CodeDeployServiceRole",
+                        "Arn"
+                    ]
+                }
             }
         },
         "SGForEC2Instance": {
