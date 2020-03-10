@@ -893,17 +893,7 @@
             "Type": "AWS::CodeDeploy::Application",
             "Properties": {
                 "ApplicationName": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            {
-                                "Ref": "CodeDeployApplicationName"
-                            }
-                        ]
-                    ]
+                    "Ref": "CodeDeployApplicationName"
                 },
                 "ComputePlatform": {
                     "Ref": "CodeDeployComputePlatform"
@@ -1280,7 +1270,7 @@
                                     "Ref": "DBPassword"
                                 },
                                 " >> /etc/profile \n",
-                                "echo export APP=",
+                                "echo export NODE_ENV=",
                                 {
                                     "Ref": "WEBAPPENV"
                                 },
