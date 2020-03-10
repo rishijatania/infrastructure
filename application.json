@@ -179,11 +179,6 @@
             "Description": "Name of existing circleci Role you want to add to the newly created Managed Policy",
             "Default": "circleci"
         },
-        "CircleCIEC2PackerPolicyName": {
-            "Description": "Please enter the Name for EC2 Policy that will allow Circle CI to perform operations of creating an AMI",
-            "Type": "String",
-            "Default": "CircleCI-EC2-AMI"
-        },
         "CircleCICodeDeployPolicyName": {
             "Description": "Please enter the Name for CircleCi Policy that allows CircleCI to call CodeDeploy APIs to initiate application deployment on EC2 instances.",
             "Type": "String",
@@ -676,72 +671,6 @@
                             },
                             {
                                 "Ref": "CircleCICodeDeployPolicyName"
-                            }
-                        ]
-                    ]
-                }
-            }
-        },
-        "CircleCIEC2PackerPolicy": {
-            "Type": "AWS::IAM::ManagedPolicy",
-            "Properties": {
-                "Description": "Policy for creating AMI through packer",
-                "PolicyDocument": {
-                    "Version": "2012-10-17",
-                    "Statement": [
-                        {
-                            "Action": [
-                                "ec2:AttachVolume",
-                                "ec2:AuthorizeSecurityGroupIngress",
-                                "ec2:CopyImage",
-                                "ec2:CreateImage",
-                                "ec2:CreateKeypair",
-                                "ec2:CreateSecurityGroup",
-                                "ec2:CreateSnapshot",
-                                "ec2:CreateTags",
-                                "ec2:CreateVolume",
-                                "ec2:DeleteKeyPair",
-                                "ec2:DeleteSecurityGroup",
-                                "ec2:DeleteSnapshot",
-                                "ec2:DeleteVolume",
-                                "ec2:DeregisterImage",
-                                "ec2:DescribeImageAttribute",
-                                "ec2:DescribeImages",
-                                "ec2:DescribeInstances",
-                                "ec2:DescribeInstanceStatus",
-                                "ec2:DescribeRegions",
-                                "ec2:DescribeSecurityGroups",
-                                "ec2:DescribeSnapshots",
-                                "ec2:DescribeSubnets",
-                                "ec2:DescribeTags",
-                                "ec2:DescribeVolumes",
-                                "ec2:DetachVolume",
-                                "ec2:GetPasswordData",
-                                "ec2:ModifyImageAttribute",
-                                "ec2:ModifyInstanceAttribute",
-                                "ec2:ModifySnapshotAttribute",
-                                "ec2:RegisterImage",
-                                "ec2:RunInstances",
-                                "ec2:StopInstances",
-                                "ec2:TerminateInstances"
-                            ],
-                            "Effect": "Allow",
-                            "Resource": "*"
-                        }
-                    ]
-                },
-                "Users": {
-                    "Ref": "CircleCIIAMRoleName"
-                },
-                "ManagedPolicyName": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            {
-                                "Ref": "CircleCIEC2PackerPolicyName"
                             }
                         ]
                     ]
