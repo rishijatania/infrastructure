@@ -536,9 +536,11 @@
                         }
                     ]
                 },
-                "Users": {
-                    "Ref": "CircleCIIAMRoleName"
-                },
+                "Users": [
+                    {
+                        "Ref": "CircleCIIAMRoleName"
+                    }
+                ],
                 "ManagedPolicyName": {
                     "Fn::Join": [
                         "-",
@@ -570,7 +572,7 @@
                             "Resource": [
                                 {
                                     "Fn::Join": [
-                                        "-",
+                                        "",
                                         [
                                             "arn:aws:codedeploy:",
                                             {
@@ -609,7 +611,7 @@
                             "Resource": [
                                 {
                                     "Fn::Join": [
-                                        "-",
+                                        "",
                                         [
                                             "arn:aws:codedeploy:",
                                             {
@@ -625,7 +627,7 @@
                                 },
                                 {
                                     "Fn::Join": [
-                                        "-",
+                                        "",
                                         [
                                             "arn:aws:codedeploy:",
                                             {
@@ -641,7 +643,7 @@
                                 },
                                 {
                                     "Fn::Join": [
-                                        "-",
+                                        "",
                                         [
                                             "arn:aws:codedeploy:",
                                             {
@@ -659,9 +661,11 @@
                         }
                     ]
                 },
-                "Users": {
-                    "Ref": "CircleCIIAMRoleName"
-                },
+                "Users": [
+                    {
+                        "Ref": "CircleCIIAMRoleName"
+                    }
+                ],
                 "ManagedPolicyName": {
                     "Fn::Join": [
                         "-",
@@ -893,17 +897,7 @@
             "Type": "AWS::CodeDeploy::Application",
             "Properties": {
                 "ApplicationName": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            {
-                                "Ref": "CodeDeployApplicationName"
-                            }
-                        ]
-                    ]
+                    "Ref": "CodeDeployApplicationName"
                 },
                 "ComputePlatform": {
                     "Ref": "CodeDeployComputePlatform"
@@ -1244,62 +1238,63 @@
                             "",
                             [
                                 "#!/bin/bash \n",
-                                "echo export DB_HOST=",
+                                "sudo echo export DB_HOST=",
                                 {
                                     "Fn::GetAtt": [
                                         "RDSDBInstance",
                                         "Endpoint.Address"
                                     ]
                                 },
-                                " >> /etc/profile \n",
-                                "echo export DB_DIALECT=",
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_DIALECT=",
                                 {
                                     "Ref": "DBType"
                                 },
-                                " >> /etc/profile \n",
-                                "echo export DB_PORT=",
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_PORT=",
                                 {
                                     "Fn::GetAtt": [
                                         "RDSDBInstance",
                                         "Endpoint.Port"
                                     ]
                                 },
-                                " >> /etc/profile \n",
-                                "echo export DB_NAME=",
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_NAME=",
                                 {
                                     "Ref": "RDSDBName"
                                 },
-                                " >> /etc/profile \n",
-                                "echo export DB_USER=",
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_USER=",
                                 {
                                     "Ref": "DBUsername"
                                 },
-                                " >> /etc/profile \n",
-                                "echo export DB_PSWD=",
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_PSWD=",
                                 {
                                     "Ref": "DBPassword"
                                 },
-                                " >> /etc/profile \n",
-                                "echo export APP=",
+                                " >> /etc/environment \n",
+                                "sudo echo export NODE_ENV=",
                                 {
                                     "Ref": "WEBAPPENV"
                                 },
-                                " >> /etc/profile \n",
-                                "echo export PORT=",
+                                " >> /etc/environment \n",
+                                "sudo echo export PORT=",
                                 {
                                     "Ref": "WEBAPPPORT"
                                 },
-                                " >> /etc/profile \n",
-                                "echo export S3_BUCKET=",
+                                " >> /etc/environment \n",
+                                "sudo echo export S3_BUCKET=",
                                 {
                                     "Ref": "S3Bucket"
                                 },
-                                " >> /etc/profile \n",
-                                "echo export AWS_REGION=",
+                                " >> /etc/environment \n",
+                                "sudo echo export AWS_REGION=",
                                 {
                                     "Ref": "AWS::Region"
                                 },
-                                " >> /etc/profile \n"
+                                " >> /etc/environment \n",
+                                "sudo service codedeploy-agent start \n"
                             ]
                         ]
                     }
@@ -1307,209 +1302,5 @@
             }
         }
     },
-    "Outputs": {
-        "VPC": {
-            "Description": "A reference to the created VPC",
-            "Value": {
-                "Ref": "VPC"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "VPC"
-                        ]
-                    ]
-                }
-            }
-        },
-        "PublicSubnets": {
-            "Description": "A list of the public subnets",
-            "Value": {
-                "Fn::Join": [
-                    ",",
-                    [
-                        {
-                            "Ref": "PublicSubnetA"
-                        },
-                        {
-                            "Ref": "PublicSubnetB"
-                        },
-                        {
-                            "Ref": "PublicSubnetC"
-                        }
-                    ]
-                ]
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "ListOfPublicSubnet"
-                        ]
-                    ]
-                }
-            }
-        },
-        "PublicSubnet1": {
-            "Description": "A reference to the public subnet in the 1st Availability Zone",
-            "Value": {
-                "Ref": "PublicSubnetA"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "PublicSubnetA"
-                        ]
-                    ]
-                }
-            }
-        },
-        "PublicSubnet2": {
-            "Description": "A reference to the public subnet in the 2nd Availability Zone",
-            "Value": {
-                "Ref": "PublicSubnetB"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "PublicSubnetB"
-                        ]
-                    ]
-                }
-            }
-        },
-        "PublicSubnet3": {
-            "Description": "A reference to the public subnet in the 3rd Availability Zone",
-            "Value": {
-                "Ref": "PublicSubnetC"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "PublicSubnetC"
-                        ]
-                    ]
-                }
-            }
-        },
-        "S3ManagedPolicyInfo": {
-            "Description": "A reference to the S3ManagedPolicy",
-            "Value": {
-                "Ref": "S3ManagedPolicy"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "S3ManagedPolicy"
-                        ]
-                    ]
-                }
-            }
-        },
-        "EC2IAMRoleS3": {
-            "Description": "A reference to the EC2IAMRole attached to EC2",
-            "Value": {
-                "Ref": "EC2IAMRole"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "EC2IAMRoleS3"
-                        ]
-                    ]
-                }
-            }
-        },
-        "S3BucketInfo": {
-            "Description": "A reference to the S3Bucket",
-            "Value": {
-                "Ref": "S3Bucket"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "S3Bucket"
-                        ]
-                    ]
-                }
-            }
-        },
-        "RDSDBInstanceInfo": {
-            "Description": "A reference to the RDSDBInstance",
-            "Value": {
-                "Ref": "RDSDBInstance"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "RDSDBInstance"
-                        ]
-                    ]
-                }
-            }
-        },
-        "EC2InstanceInfo": {
-            "Description": "A reference to the EC2Instance",
-            "Value": {
-                "Ref": "EC2Instance"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "EC2Instance"
-                        ]
-                    ]
-                }
-            }
-        }
-    }
+    "Outputs": {}
 }
