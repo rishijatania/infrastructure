@@ -1302,5 +1302,82 @@
             }
         }
     },
-    "Outputs": {}
+    "Outputs": {
+        "VPC": {
+            "Description": "A reference to the created VPC",
+            "Value": {
+                "Ref": "VPC"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "VPC"
+                        ]
+                    ]
+                }
+            }
+        },
+        "PublicSubnet1": {
+            "Description": "A reference to the public subnet in the 1st Availability Zone",
+            "Value": {
+                "Ref": "PublicSubnetA"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "PublicSubnetA"
+                        ]
+                    ]
+                }
+            }
+        },
+        "PublicSubnet2": {
+            "Description": "A reference to the public subnet in the 2nd Availability Zone",
+            "Value": {
+                "Ref": "PublicSubnetB"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "PublicSubnetB"
+                        ]
+                    ]
+                }
+            }
+        },
+        "PublicSubnet3": {
+            "Description": "A reference to the public subnet in the 3rd Availability Zone",
+            "Value": {
+                "Ref": "PublicSubnetC"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "PublicSubnetC"
+                        ]
+                    ]
+                }
+            }
+        }
+    }
 }
