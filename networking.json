@@ -63,7 +63,7 @@
                         "Key": "Name",
                         "Value": {
                             "Fn::Join": [
-                                ":",
+                                "-",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
@@ -86,7 +86,7 @@
                         "Key": "Name",
                         "Value": {
                             "Fn::Join": [
-                                ":",
+                                "-",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
@@ -137,7 +137,7 @@
                         "Key": "Name",
                         "Value": {
                             "Fn::Join": [
-                                ":",
+                                "-",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
@@ -177,7 +177,7 @@
                         "Key": "Name",
                         "Value": {
                             "Fn::Join": [
-                                ":",
+                                "-",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
@@ -217,7 +217,7 @@
                         "Key": "Name",
                         "Value": {
                             "Fn::Join": [
-                                ":",
+                                "-",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
@@ -243,7 +243,7 @@
                         "Key": "Name",
                         "Value": {
                             "Fn::Join": [
-                                ":",
+                                "-",
                                 [
                                     {
                                         "Ref": "AWS::StackName"
@@ -314,7 +314,7 @@
             "Export": {
                 "Name": {
                     "Fn::Join": [
-                        ":",
+                        "-",
                         [
                             {
                                 "Ref": "AWS::StackName"
@@ -346,7 +346,7 @@
             "Export": {
                 "Name": {
 					"Fn::Join": [
-                        ":",
+                        "-",
                         [
                             {
                                 "Ref": "AWS::StackName"
@@ -365,7 +365,7 @@
             "Export": {
                 "Name": {
                     "Fn::Join": [
-                        ":",
+                        "-",
                         [
                             {
                                 "Ref": "AWS::StackName"
@@ -384,7 +384,7 @@
             "Export": {
                 "Name": {
 					"Fn::Join": [
-                        ":",
+                        "-",
                         [
                             {
                                 "Ref": "AWS::StackName"
@@ -403,7 +403,7 @@
             "Export": {
                 "Name": {
                     "Fn::Join": [
-                        ":",
+                        "-",
                         [
                             {
                                 "Ref": "AWS::StackName"
