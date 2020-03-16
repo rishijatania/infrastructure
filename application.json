@@ -236,6 +236,10 @@
             "Description": "Please enter the Deployment Config name for codedeploy",
             "Type": "String",
             "Default": "CodeDeployDefault.AllAtOnce"
+        },
+        "CloudWatchAgentServerPolicy": {
+            "Description": "Permissions required to use AmazonCloudWatchAgent on servers",
+            "Type": "String"
         }
     },
     "Resources": {
@@ -865,6 +869,9 @@
                     },
                     {
                         "Ref": "CodeDeployEC2S3Policy"
+                    },
+                    {
+                        "Ref": "CloudWatchAgentServerPolicy"
                     }
                 ],
                 "RoleName": {
