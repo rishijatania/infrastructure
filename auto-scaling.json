@@ -1,0 +1,1015 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "",
+    "Parameters": {
+        "NetworkStackName": {
+            "Description": "Please enter the Network Stack Name",
+            "Type": "String",
+            "Default": "csye6225demo-network"
+        },
+        "PolicyStackName": {
+            "Description": "Please enter the Policy Stack Name",
+            "Type": "String",
+            "Default": "csye6225demo-policy"
+        },
+        "EC2SecurityGroupName": {
+            "Description": "Please enter the Group Name for Security group attached to the EC2 instances",
+            "Type": "String",
+            "Default": "ApplicationSecurityGroup"
+        },
+        "RDSSecurityGroupName": {
+            "Description": "Please enter the Group Name for Security group attached to the RDS instances",
+            "Type": "String",
+            "Default": "DatabaseSecurityGroup"
+        },
+        "EC2SGName": {
+            "Description": "Please enter the Name for Security group attached to the EC2 instances",
+            "Type": "String",
+            "Default": "EC2-SG"
+        },
+        "RDSSGName": {
+            "Description": "Please enter the Name for Security group attached to the RDS instances",
+            "Type": "String",
+            "Default": "RDS-SG"
+        },
+        "RDSDBInstanceClass": {
+            "Description": "Please enter the DB Instance class for RDS instances",
+            "Type": "String"
+        },
+        "RDSDBPubliclyAccessiblity": {
+            "Description": "Please enter the DB Instance class for RDS instances",
+            "Type": "String",
+            "Default": "false"
+        },
+        "RDSDBInstanceIdentifier": {
+            "Description": "Please enter the DB Instance Identifier for RDS instances",
+            "Type": "String"
+        },
+        "RDSDBName": {
+            "Description": "Please enter the DB Name for RDS instances",
+            "Type": "String"
+        },
+        "DBEngine": {
+            "Description": "Please enter the DB Engine for RDS instances",
+            "Type": "String",
+            "Default": "MySQL"
+        },
+        "DBUsername": {
+            "Description": "Please enter the DB UserName for RDS instances",
+            "Type": "String"
+        },
+        "DBPassword": {
+            "Description": "Please enter the DB Password for RDS instances",
+            "Type": "String"
+        },
+        "DBSubnetGroupName": {
+            "Description": "Please enter the RDS DB Subnet Group Name",
+            "Type": "String",
+            "Default": "DBSubnetGroup"
+        },
+        "EC2InstanceType": {
+            "Description": "Please enter the EC2 Instance Type",
+            "Type": "String"
+        },
+        "EC2AMI": {
+            "Description": "Please enter the AMI for the EC2 Instance",
+            "Type": "String"
+        },
+        "EC2EBSRootVolumeSize": {
+            "Type": "Number",
+            "Description": "Please enter the root volume size for EBS attached to the EC2 Instance"
+        },
+        "EC2EBSRootVolumeType": {
+            "Description": "Please enter the root volume type for EBS attached to the EC2 Instance",
+            "Type": "String",
+            "Default": "gp2"
+        },
+        "SSHKeyPairName": {
+            "Description": "Please enter the SSH key pair configured to SSH into the EC2 Instance",
+            "Type": "String"
+        },
+        "WEBAPPENV": {
+            "Description": "Please enter the WebApp ENV i.e. Dev or Prod ",
+            "Type": "String"
+        },
+        "WEBAPPPORT": {
+            "Description": "Please enter the WebApp PORT ",
+            "Type": "String"
+        },
+        "AllocatedStorageRDS": {
+            "Description": "Please enter the storeage size for RDS ",
+            "Type": "Number"
+        },
+        "DBEngineVersion": {
+            "Description": "Please enter the RDS DB Version",
+            "Type": "String",
+            "Default": "8.0.15"
+        },
+        "DBType": {
+            "Description": "Please enter the DB type for ENV if EC2instance",
+            "Type": "String",
+            "Default": "mysql"
+        },
+        "CodeDeployComputePlatform": {
+            "Description": "Please enter the compute platform for codedeploy",
+            "Type": "String",
+            "AllowedValues": [
+                "ECS",
+                "Lambda",
+                "Server"
+            ],
+            "Default": "Server"
+        },
+        "CodeDeployApplicationName": {
+            "Description": "Please enter the codedeploy application name",
+            "Type": "String",
+            "Default": "csye6225-webapp"
+        },
+        "CodeDeployDeploymentGroupName": {
+            "Description": "Please enter the Deployment group name for codedeploy",
+            "Type": "String",
+            "Default": "csye6225-webapp-deployment"
+        },
+        "CodeDeployDeploymentType": {
+            "Description": "Please enter the Deployment type for codedeploy",
+            "Type": "String",
+            "AllowedValues": [
+                "IN_PLACE",
+                "BLUE_GREEN"
+            ],
+            "Default": "IN_PLACE"
+        },
+        "CodeDeployDeploymentOption": {
+            "Description": "Indicates whether to route deployment traffic behind a load balancer",
+            "Type": "String",
+            "AllowedValues": [
+                "WITH_TRAFFIC_CONTROL",
+                "WITHOUT_TRAFFIC_CONTROL"
+            ],
+            "Default": "WITH_TRAFFIC_CONTROL"
+        },
+        "CodeDeployDeploymentConfigName": {
+            "Description": "Please enter the Deployment Config name for codedeploy",
+            "Type": "String",
+            "Default": "CodeDeployDefault.AllAtOnce"
+        },
+        "ASGCooldown": {
+            "Description": "The amount of time, in seconds, after a scaling activity completes before another scaling activity can start",
+            "Type": "String",
+            "Default": "60"
+        },
+        "ASGDesiredCapacity": {
+            "Description": "The number of Amazon EC2 instances that the Auto Scaling group attempts to maintain",
+            "Type": "String",
+            "Default": "2"
+        },
+        "ASGMaxSize": {
+            "Description": "The maximum number of Amazon EC2 instances in the Auto Scaling group",
+            "Type": "String",
+            "Default": "5"
+        },
+        "ASGMinSize": {
+            "Description": "The minimum number of Amazon EC2 instances in the Auto Scaling group",
+            "Type": "String",
+            "Default": "2"
+        },
+        "LBSecurityGroupName": {
+            "Description": "The Load Balancer SG Name",
+            "Type": "String",
+            "Default": "LBSecurityGroup"
+        },
+        "DomainName": {
+            "Description": "The Route 53 domain name",
+            "Type": "String"
+        },
+        "ScaleUpPolicyCooldown": {
+            "Description": "The Scale Up Policy Cooldown period",
+            "Type": "String",
+            "Default": "60"
+        },
+        "ScaleUpScalingAdjustment": {
+            "Description": "The Scale Up Policy Scaling adjustment",
+            "Type": "String",
+            "Default": "1"
+        },
+        "ScaleDownPolicyCooldown": {
+            "Description": "The Scale Down Policy Cooldown period",
+            "Type": "String",
+            "Default": "60"
+        },
+        "ScaleDownScalingAdjustment": {
+            "Description": "The Scale Down Policy Scaling adjustment",
+            "Type": "String",
+            "Default": "-1"
+        },
+        "CPUAlarmPeriod": {
+            "Description": "The CPU Alarm Period",
+            "Type": "String",
+            "Default": "60"
+        },
+        "CPUAlarmEvaluationPeriods": {
+            "Description": "The CPU Alarm EvaluationPeriods",
+            "Type": "String",
+            "Default": "1"
+        },
+        "CPUAlarmHighThreshold": {
+            "Description": "The CPU Alarm High Threshold",
+            "Type": "String",
+            "Default": "60"
+        },
+        "CPUAlarmLowThreshold": {
+            "Description": "The CPU Alarm Low Threshold",
+            "Type": "String",
+            "Default": "10"
+        },
+        "ApplicationLoadBalancerType": {
+            "Description": "Load Balancer Type",
+            "Type": "String",
+            "Default": "application"
+        },
+        "ApplicationLoadBalancerListenerType": {
+            "Description": "Load Balancer Listener Type",
+            "Type": "String",
+            "Default": "forward"
+        },
+        "ApplicationLoadBalancerListenerProtocol": {
+            "Description": "Load Balancer Listener Protocol",
+            "Type": "String",
+            "Default": "HTTP"
+        },
+        "ApplicationLoadBalancerListenerPort": {
+            "Description": "Load Balancer Listener Port",
+            "Type": "Number",
+            "Default": 80
+        },
+        "HealthCheckIntervalSeconds": {
+            "Description": "Health Check Interval Seconds",
+            "Type": "Number",
+            "Default": 30
+        },
+        "HealthCheckTimeoutSeconds": {
+            "Description": "Health Check Timeout Seconds",
+            "Type": "Number",
+            "Default": 5
+        },
+        "HealthyThresholdCount": {
+            "Description": "Healthy Threshold Count",
+            "Type": "Number",
+            "Default": 2
+        },
+        "UnhealthyThresholdCount": {
+            "Description": "Unhealthy Threshold Count",
+            "Type": "Number",
+            "Default": 5
+        },
+        "HealthCheckPath": {
+            "Description": "HealthCheck Path",
+            "Type": "String",
+            "Default": "/v1/check"
+        }
+    },
+    "Resources": {
+        "AutoScalingGroup": {
+            "Type": "AWS::AutoScaling::AutoScalingGroup",
+            "DependsOn": "ApplicationLoadBalancer",
+            "Properties": {
+                "AutoScalingGroupName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "WebServerGroup"
+                        ]
+                    ]
+                },
+                "Cooldown": {
+                    "Ref": "ASGCooldown"
+                },
+                "DesiredCapacity": {
+                    "Ref": "ASGDesiredCapacity"
+                },
+                "LaunchConfigurationName": {
+                    "Ref": "ASGLaunchConfiguration"
+                },
+                "MaxSize": {
+                    "Ref": "ASGMaxSize"
+                },
+                "MinSize": {
+                    "Ref": "ASGMinSize"
+                },
+                "VPCZoneIdentifier": [
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "${NetworkStackName}-PublicSubnetA"
+                        }
+                    },
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "${NetworkStackName}-PublicSubnetB"
+                        }
+                    },
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "${NetworkStackName}-PublicSubnetC"
+                        }
+                    }
+                ],
+                "TargetGroupARNs": [
+                    {
+                        "Ref": "LoadBalancerTargetGroup"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "AutoScalingGroupName",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "WebServerGroup"
+                                ]
+                            ]
+                        },
+                        "PropagateAtLaunch": "true"
+                    }
+                ]
+            }
+        },
+        "ASGLaunchConfiguration": {
+            "Type": "AWS::AutoScaling::LaunchConfiguration",
+            "Properties": {
+                "AssociatePublicIpAddress": "true",
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeType": {
+                                "Ref": "EC2EBSRootVolumeType"
+                            },
+                            "DeleteOnTermination": "true",
+                            "VolumeSize": {
+                                "Ref": "EC2EBSRootVolumeSize"
+                            }
+                        }
+                    }
+                ],
+                "IamInstanceProfile": {
+                    "Fn::ImportValue": {
+                        "Fn::Sub": "${PolicyStackName}-IAMInstanceProfile"
+                    }
+                },
+                "ImageId": {
+                    "Ref": "EC2AMI"
+                },
+                "InstanceType": {
+                    "Ref": "EC2InstanceType"
+                },
+                "KeyName": {
+                    "Ref": "SSHKeyPairName"
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "SGForEC2Instance"
+                    }
+                ],
+                "LaunchConfigurationName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "asg_launch_config"
+                        ]
+                    ]
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                "#!/bin/bash \n",
+                                "sudo echo export DB_HOST=",
+                                {
+                                    "Fn::GetAtt": [
+                                        "RDSDBInstance",
+                                        "Endpoint.Address"
+                                    ]
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_DIALECT=",
+                                {
+                                    "Ref": "DBType"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_PORT=",
+                                {
+                                    "Fn::GetAtt": [
+                                        "RDSDBInstance",
+                                        "Endpoint.Port"
+                                    ]
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_NAME=",
+                                {
+                                    "Ref": "RDSDBName"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_USER=",
+                                {
+                                    "Ref": "DBUsername"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export DB_PSWD=",
+                                {
+                                    "Ref": "DBPassword"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export NODE_ENV=",
+                                {
+                                    "Ref": "WEBAPPENV"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export PORT=",
+                                {
+                                    "Ref": "WEBAPPPORT"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export S3_BUCKET=",
+                                {
+                                    "Fn::ImportValue": {
+                                        "Fn::Sub": "${PolicyStackName}-S3Bucket"
+                                    }
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export AWS_REGION=",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo service codedeploy-agent start \n"
+                            ]
+                        ]
+                    }
+                }
+            }
+        },
+        "WebServerScaleUpPolicy": {
+            "Type": "AWS::AutoScaling::ScalingPolicy",
+            "Properties": {
+                "AdjustmentType": "ChangeInCapacity",
+                "AutoScalingGroupName": {
+                    "Ref": "AutoScalingGroup"
+                },
+                "Cooldown": {
+                    "Ref": "ScaleUpPolicyCooldown"
+                },
+                "ScalingAdjustment": {
+                    "Ref": "ScaleUpScalingAdjustment"
+                }
+            }
+        },
+        "WebServerScaleDownPolicy": {
+            "Type": "AWS::AutoScaling::ScalingPolicy",
+            "Properties": {
+                "AdjustmentType": "ChangeInCapacity",
+                "AutoScalingGroupName": {
+                    "Ref": "AutoScalingGroup"
+                },
+                "Cooldown": {
+                    "Ref": "ScaleDownPolicyCooldown"
+                },
+                "ScalingAdjustment": {
+                    "Ref": "ScaleDownScalingAdjustment"
+                }
+            }
+        },
+        "CPUAlarmHigh": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": "Scale-up if CPU > 70% for 1 minutes",
+                "MetricName": "CPUUtilization",
+                "Namespace": "AWS/EC2",
+                "Statistic": "Average",
+                "Period": {
+                    "Ref": "CPUAlarmPeriod"
+                },
+                "EvaluationPeriods": {
+                    "Ref": "CPUAlarmEvaluationPeriods"
+                },
+                "Threshold": {
+                    "Ref": "CPUAlarmHighThreshold"
+                },
+                "AlarmActions": [
+                    {
+                        "Ref": "WebServerScaleUpPolicy"
+                    }
+                ],
+                "Dimensions": [
+                    {
+                        "Name": "AutoScalingGroupName",
+                        "Value": {
+                            "Ref": "AutoScalingGroup"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "GreaterThanThreshold"
+            }
+        },
+        "CPUAlarmLow": {
+            "Type": "AWS::CloudWatch::Alarm",
+            "Properties": {
+                "AlarmDescription": "Scale-down if CPU < 3% for 1 minutes",
+                "MetricName": "CPUUtilization",
+                "Namespace": "AWS/EC2",
+                "Statistic": "Average",
+                "Period": {
+                    "Ref": "CPUAlarmPeriod"
+                },
+                "EvaluationPeriods": {
+                    "Ref": "CPUAlarmEvaluationPeriods"
+                },
+                "Threshold": {
+                    "Ref": "CPUAlarmLowThreshold"
+                },
+                "AlarmActions": [
+                    {
+                        "Ref": "WebServerScaleDownPolicy"
+                    }
+                ],
+                "Dimensions": [
+                    {
+                        "Name": "AutoScalingGroupName",
+                        "Value": {
+                            "Ref": "AutoScalingGroup"
+                        }
+                    }
+                ],
+                "ComparisonOperator": "LessThanThreshold"
+            }
+        },
+        "ApplicationLoadBalancer": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties": {
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "AppLoadBalancer"
+                        ]
+                    ]
+                },
+                "SecurityGroups": [
+                    {
+                        "Ref": "LoadBalancerSecurityGroup"
+                    }
+                ],
+                "Subnets": [
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "${NetworkStackName}-PublicSubnetA"
+                        }
+                    },
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "${NetworkStackName}-PublicSubnetB"
+                        }
+                    },
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "${NetworkStackName}-PublicSubnetC"
+                        }
+                    }
+                ],
+                "Type": {
+                    "Ref": "ApplicationLoadBalancerType"
+                }
+            }
+        },
+        "LoadBalancerListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "TargetGroupArn": {
+                            "Ref": "LoadBalancerTargetGroup"
+                        },
+                        "Type": {
+                            "Ref": "ApplicationLoadBalancerListenerType"
+                        }
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "ApplicationLoadBalancer"
+                },
+                "Port": {
+                    "Ref": "ApplicationLoadBalancerListenerPort"
+                },
+                "Protocol": {
+                    "Ref": "ApplicationLoadBalancerListenerProtocol"
+                }
+            }
+        },
+        "LoadBalancerTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties": {
+                "HealthCheckIntervalSeconds": {
+                    "Ref": "HealthCheckIntervalSeconds"
+                },
+                "HealthCheckPath": {
+                    "Ref": "HealthCheckPath"
+                },
+                "HealthCheckPort": "3000",
+                "HealthCheckProtocol": "HTTP",
+                "HealthCheckTimeoutSeconds": {
+                    "Ref": "HealthCheckTimeoutSeconds"
+                },
+                "HealthyThresholdCount": {
+                    "Ref": "HealthyThresholdCount"
+                },
+                "Matcher": {
+                    "HttpCode": "200"
+                },
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "LBTargetGroup"
+                        ]
+                    ]
+                },
+                "Port": 3000,
+                "Protocol": "HTTP",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "LoadBalancerTargetGroup"
+                                ]
+                            ]
+                        }
+                    }
+                ],
+                "TargetGroupAttributes": [
+                    {
+                        "Key": "deregistration_delay.timeout_seconds",
+                        "Value": "20"
+                    }
+                ],
+                "TargetType": "instance",
+                "UnhealthyThresholdCount": {
+                    "Ref": "UnhealthyThresholdCount"
+                },
+                "VpcId": {
+                    "Fn::ImportValue": {
+                        "Fn::Sub": "${NetworkStackName}-VPC"
+                    }
+                }
+            }
+        },
+        "LoadBalancerSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Security Group for Load Balancer hosting the application server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 80,
+                        "ToPort": 80,
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ],
+                "GroupName": {
+                    "Ref": "LBSecurityGroupName"
+                },
+                "VpcId": {
+                    "Fn::ImportValue": {
+                        "Fn::Sub": "${NetworkStackName}-VPC"
+                    }
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    {
+                                        "Ref": "LBSecurityGroupName"
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "DNSRecord": {
+            "Type": "AWS::Route53::RecordSet",
+            "Properties": {
+                "AliasTarget": {
+                    "DNSName": {
+                        "Fn::GetAtt": [
+                            "ApplicationLoadBalancer",
+                            "DNSName"
+                        ]
+                    },
+                    "EvaluateTargetHealth": "true",
+                    "HostedZoneId": {
+                        "Fn::GetAtt": [
+                            "ApplicationLoadBalancer",
+                            "CanonicalHostedZoneID"
+                        ]
+                    }
+                },
+                "Comment": "Resource record for load balancer",
+                "HostedZoneName": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "DomainName"
+                            },
+                            "."
+                        ]
+                    ]
+                },
+                "Name": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "DomainName"
+                            },
+                            "."
+                        ]
+                    ]
+                },
+                "Type": "A"
+            }
+        },
+        "SGForEC2Instance": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Security Group for EC2 instance hosting the application server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 3000,
+                        "ToPort": 3000,
+                        "SourceSecurityGroupId": {
+                            "Ref": "LoadBalancerSecurityGroup"
+                        }
+                    }
+                ],
+                "GroupName": {
+                    "Ref": "EC2SecurityGroupName"
+                },
+                "VpcId": {
+                    "Fn::ImportValue": {
+                        "Fn::Sub": "${NetworkStackName}-VPC"
+                    }
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    {
+                                        "Ref": "EC2SGName"
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "SGForRDSInstance": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "Security Group for RDS instance hosting the database server",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "3306",
+                        "ToPort": "3306",
+                        "SourceSecurityGroupId": {
+                            "Ref": "SGForEC2Instance"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Fn::ImportValue": {
+                        "Fn::Sub": "${NetworkStackName}-VPC"
+                    }
+                },
+                "GroupName": {
+                    "Ref": "RDSSecurityGroupName"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    {
+                                        "Ref": "RDSSGName"
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "RDSDBInstance": {
+            "Type": "AWS::RDS::DBInstance",
+            "DependsOn": "SGForRDSInstance",
+            "Properties": {
+                "AllocatedStorage": {
+                    "Ref": "AllocatedStorageRDS"
+                },
+                "DBInstanceClass": {
+                    "Ref": "RDSDBInstanceClass"
+                },
+                "DBInstanceIdentifier": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            {
+                                "Ref": "RDSDBInstanceIdentifier"
+                            }
+                        ]
+                    ]
+                },
+                "DBName": {
+                    "Ref": "RDSDBName"
+                },
+                "DBSubnetGroupName": {
+                    "Ref": "DBSubnetGroup"
+                },
+                "Engine": {
+                    "Ref": "DBEngine"
+                },
+                "EngineVersion": {
+                    "Ref": "DBEngineVersion"
+                },
+                "MasterUsername": {
+                    "Ref": "DBUsername"
+                },
+                "MasterUserPassword": {
+                    "Ref": "DBPassword"
+                },
+                "MultiAZ": "false",
+                "PubliclyAccessible": {
+                    "Ref": "RDSDBPubliclyAccessiblity"
+                },
+                "VPCSecurityGroups": [
+                    {
+                        "Ref": "SGForRDSInstance"
+                    }
+                ]
+            }
+        },
+        "DBSubnetGroup": {
+            "Type": "AWS::RDS::DBSubnetGroup",
+            "Properties": {
+                "DBSubnetGroupDescription": "Included Private Subnets",
+                "SubnetIds": [
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "${NetworkStackName}-PublicSubnetB"
+                        }
+                    },
+                    {
+                        "Fn::ImportValue": {
+                            "Fn::Sub": "${NetworkStackName}-PublicSubnetC"
+                        }
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    {
+                                        "Ref": "DBSubnetGroupName"
+                                    }
+                                ]
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+        "CodeDeployApplication": {
+            "Type": "AWS::CodeDeploy::Application",
+            "Properties": {
+                "ApplicationName": {
+                    "Ref": "CodeDeployApplicationName"
+                },
+                "ComputePlatform": {
+                    "Ref": "CodeDeployComputePlatform"
+                }
+            }
+        },
+        "CodeDeployDeploymentGroup": {
+            "Type": "AWS::CodeDeploy::DeploymentGroup",
+            "Properties": {
+                "ApplicationName": {
+                    "Ref": "CodeDeployApplication"
+                },
+                "AutoRollbackConfiguration": {
+                    "Enabled": "true",
+                    "Events": [
+                        "DEPLOYMENT_FAILURE"
+                    ]
+                },
+                "DeploymentConfigName": {
+                    "Ref": "CodeDeployDeploymentConfigName"
+                },
+                "DeploymentGroupName": {
+                    "Ref": "CodeDeployDeploymentGroupName"
+                },
+                "DeploymentStyle": {
+                    "DeploymentOption": {
+                        "Ref": "CodeDeployDeploymentOption"
+                    },
+                    "DeploymentType": {
+                        "Ref": "CodeDeployDeploymentType"
+                    }
+                },
+                "Ec2TagFilters": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}-EC2Instance"
+                        },
+                        "Type": "KEY_AND_VALUE"
+                    }
+                ],
+                "ServiceRoleArn": {
+                    "Fn::ImportValue": {
+                        "Fn::Sub": "${PolicyStackName}-CodeDeployServiceRoleArn"
+                    }
+                },
+                "AutoScalingGroups": [
+                    {
+                        "Ref": "AutoScalingGroup"
+                    }
+                ],
+                "LoadBalancerInfo": {
+                    "TargetGroupInfoList": [
+                        {
+                            "Name": {
+                                "Fn::GetAtt": [
+                                    "LoadBalancerTargetGroup",
+                                    "TargetGroupName"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    },
+    "Outputs": {}
+}

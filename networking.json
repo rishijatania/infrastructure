@@ -313,15 +313,7 @@
             },
             "Export": {
                 "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "VPC"
-                        ]
-                    ]
+                    "Fn::Sub": "${AWS::StackName}-VPC"
                 }
             }
         },
@@ -345,7 +337,7 @@
             },
             "Export": {
                 "Name": {
-					"Fn::Join": [
+                    "Fn::Join": [
                         "-",
                         [
                             {
@@ -364,15 +356,7 @@
             },
             "Export": {
                 "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "PublicSubnetA"
-                        ]
-                    ]
+                    "Fn::Sub": "${AWS::StackName}-PublicSubnetA"
                 }
             }
         },
@@ -383,15 +367,7 @@
             },
             "Export": {
                 "Name": {
-					"Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "PublicSubnetB"
-                        ]
-                    ]
+                    "Fn::Sub": "${AWS::StackName}-PublicSubnetB"
                 }
             }
         },
@@ -402,15 +378,18 @@
             },
             "Export": {
                 "Name": {
-                    "Fn::Join": [
-                        "-",
-                        [
-                            {
-                                "Ref": "AWS::StackName"
-                            },
-                            "PublicSubnetC"
-                        ]
-                    ]
+                    "Fn::Sub": "${AWS::StackName}-PublicSubnetC"
+                }
+            }
+        },
+        "PublicGatewayAttachment": {
+            "Description": "A reference to the GatewayAttachment",
+            "Value": {
+                "Ref": "GatewayAttachment"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-GatewayAttachment"
                 }
             }
         }
