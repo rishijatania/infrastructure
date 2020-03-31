@@ -266,6 +266,16 @@
             "Description": "HealthCheck Path",
             "Type": "String",
             "Default": "/v1/check"
+        },
+        "SQSReceiveMessageWaitTime": {
+            "Description": "HealthCheck Path",
+            "Type": "Number",
+            "Default": 3
+        },
+        "SQSMessageRetentionPeriod": {
+            "Description": "HealthCheck Path",
+            "Type": "Number",
+            "Default": 3600
         }
     },
     "Resources": {
@@ -1008,6 +1018,159 @@
                         }
                     ]
                 }
+            }
+        },
+        "DynamoDBTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "id",
+                        "AttributeType": "S"
+                    },
+                    {
+                        "AttributeName": "email",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "id",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "5",
+                    "WriteCapacityUnits": "5"
+                },
+                "TableName": "csye6225",
+                "TimeToLiveSpecification": {
+                    "AttributeName": "ttl",
+                    "Enabled": true
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}-DynamoDBTable"
+                        }
+                    }
+                ]
+            }
+        },
+        "SNSTopic": {
+            "Type": "AWS::SNS::Topic",
+            "DependsOn": "LambdaFunction",
+            "Properties": {
+                "DisplayName": "EmailTopic",
+                "Subscription": [
+                    {
+                        "Endpoint": {
+                            "Fn::GetAtt": [
+                                "LambdaFunction",
+                                "Arn"
+                            ]
+                        },
+                        "Protocol": "lambda"
+                    }
+                ],
+                "TopicName": "EmailTopic"
+            }
+        },
+        "SQSQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+                "DelaySeconds": "0",
+                "MessageRetentionPeriod": {
+                    "Ref": "SQSMessageRetentionPeriod"
+                },
+                "QueueName": {
+                    "Fn::Sub": "${AWS::StackName}-SQSQueue"
+                },
+                "ReceiveMessageWaitTimeSeconds": {
+                    "Ref": "SQSReceiveMessageWaitTime"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}-SQSQueue"
+                        }
+                    }
+                ]
+            }
+        },
+        "SQSQueuePolicy": {
+            "Type": "AWS::SQS::QueuePolicy",
+            "DependsOn": "SQSQueue",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": [
+                                    {
+                                        "Fn::ImportValue": {
+                                            "Fn::Sub": "${PolicyStackName}-EC2IAMRole"
+                                        }
+                                    }
+                                ]
+                            },
+                            "Action": [
+                                "sqs:SendMessage",
+                                "sqs:ReceiveMessage"
+                            ],
+                            "Resource": {
+                                "Fn::GetAtt": [
+                                    "SQSQueue",
+                                    "Arn"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Queues": [
+                    {
+                        "Ref": "SQSQueue"
+                    }
+                ]
+            }
+        },
+        "LambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "ZipFile": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "exports.emailBills = function (event, context, callback){ console.log('Hello'); callback(null); }"
+                            ]
+                        ]
+                    }
+                },
+                "Handler": "index.emailBills",
+                "Role": {
+                    "Fn::ImportValue": "LambdaServiceRole"
+                },
+                "Runtime": "nodejs12.x",
+                "FunctionName": "EmailBills",
+                "MemorySize": 128,
+                "Timeout": 20,
+                "Environment": {
+                    "Variables": {
+                        "DomainName": {
+                            "Ref": "DomainName"
+                        }
+                    }
+                },
+                "VpcConfig": {
+                    "SecurityGroupIds": [],
+                    "SubnetIds": []
+                },
+                "Description": "Lambds Function that Sends an email containing list of Bills Due"
             }
         }
     },
