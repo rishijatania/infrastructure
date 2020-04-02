@@ -1238,7 +1238,7 @@
                 "Runtime": "nodejs12.x",
 				"FunctionName": "EmailService",
 				"MemorySize": 256,
-                "Timeout": 30,
+                "Timeout": 240,
                 "Environment": {
                     "Variables": {
                         "DomainName": {
