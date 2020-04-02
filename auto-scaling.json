@@ -268,14 +268,19 @@
             "Default": "/v1/check"
         },
         "SQSReceiveMessageWaitTime": {
-            "Description": "HealthCheck Path",
+            "Description": "Sqs Message wait time",
             "Type": "Number",
-            "Default": 3
+            "Default": 20
         },
         "SQSMessageRetentionPeriod": {
-            "Description": "HealthCheck Path",
+            "Description": "Sqs message retention period",
             "Type": "Number",
             "Default": 3600
+        },
+        "SNSTopicName": {
+            "Description": "Sns Topic Name",
+            "Type": "String",
+            "Default": "EmailTopic"
         }
     },
     "Resources": {
@@ -460,6 +465,29 @@
                                 "sudo echo export AWS_REGION=",
                                 {
                                     "Ref": "AWS::Region"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export DOMAIN_NAME=",
+                                {
+                                    "Ref": "DomainName"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export SQS_QUEUE=",
+                                {
+                                    "Fn::GetAtt": [
+                                        "SQSQueue",
+                                        "QueueName"
+                                    ]
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export SQS_QUEUE_URL=",
+                                {
+                                    "Ref": "SQSQueue"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export SNS_TOPIC_ARN=",
+                                {
+                                    "Ref": "SNSTopic"
                                 },
                                 " >> /etc/environment \n",
                                 "sudo service codedeploy-agent start \n"
@@ -1020,63 +1048,6 @@
                 }
             }
         },
-        "DynamoDBTable": {
-            "Type": "AWS::DynamoDB::Table",
-            "Properties": {
-                "AttributeDefinitions": [
-                    {
-                        "AttributeName": "id",
-                        "AttributeType": "S"
-                    },
-                    {
-                        "AttributeName": "email",
-                        "AttributeType": "S"
-                    }
-                ],
-                "KeySchema": [
-                    {
-                        "AttributeName": "id",
-                        "KeyType": "HASH"
-                    }
-                ],
-                "ProvisionedThroughput": {
-                    "ReadCapacityUnits": "5",
-                    "WriteCapacityUnits": "5"
-                },
-                "TableName": "csye6225",
-                "TimeToLiveSpecification": {
-                    "AttributeName": "ttl",
-                    "Enabled": true
-                },
-                "Tags": [
-                    {
-                        "Key": "Name",
-                        "Value": {
-                            "Fn::Sub": "${AWS::StackName}-DynamoDBTable"
-                        }
-                    }
-                ]
-            }
-        },
-        "SNSTopic": {
-            "Type": "AWS::SNS::Topic",
-            "DependsOn": "LambdaFunction",
-            "Properties": {
-                "DisplayName": "EmailTopic",
-                "Subscription": [
-                    {
-                        "Endpoint": {
-                            "Fn::GetAtt": [
-                                "LambdaFunction",
-                                "Arn"
-                            ]
-                        },
-                        "Protocol": "lambda"
-                    }
-                ],
-                "TopicName": "EmailTopic"
-            }
-        },
         "SQSQueue": {
             "Type": "AWS::SQS::Queue",
             "Properties": {
@@ -1113,14 +1084,17 @@
                                 "AWS": [
                                     {
                                         "Fn::ImportValue": {
-                                            "Fn::Sub": "${PolicyStackName}-EC2IAMRole"
+                                            "Fn::Sub": "${PolicyStackName}-EC2IAMRoleArn"
                                         }
                                     }
                                 ]
                             },
                             "Action": [
                                 "sqs:SendMessage",
-                                "sqs:ReceiveMessage"
+                                "sqs:ReceiveMessage",
+                                "sqs:GetQueueAttributes",
+                                "sqs:GetQueueUrl",
+                                "sqs:DeleteMessage"
                             ],
                             "Resource": {
                                 "Fn::GetAtt": [
@@ -1138,6 +1112,110 @@
                 ]
             }
         },
+        "DynamoDBTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "id",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "id",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "5",
+                    "WriteCapacityUnits": "5"
+                },
+                "TableName": "csye6225",
+                "TimeToLiveSpecification": {
+                    "AttributeName": "ttl",
+                    "Enabled": true
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}-DynamoDBTable"
+                        }
+                    }
+                ]
+            }
+        },
+        "SNSTopic": {
+            "Type": "AWS::SNS::Topic",
+            "DependsOn": "LambdaFunction",
+            "Properties": {
+                "DisplayName": {
+                    "Ref": "SNSTopicName"
+                },
+                "TopicName": {
+                    "Ref": "SNSTopicName"
+                }
+            }
+        },
+        "SNSSubscription": {
+            "Type": "AWS::SNS::Subscription",
+            "Properties": {
+                "Endpoint": {
+                    "Fn::GetAtt": [
+                        "LambdaFunction",
+                        "Arn"
+                    ]
+                },
+                "Protocol": "lambda",
+                "TopicArn": {
+                    "Ref": "SNSTopic"
+                }
+            }
+        },
+        "SNSPermission": {
+            "Type": "AWS::SNS::TopicPolicy",
+            "DependsOn": "SNSTopic",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": [
+                                    {
+                                        "Fn::ImportValue": {
+                                            "Fn::Sub": "${PolicyStackName}-EC2IAMRoleArn"
+                                        }
+                                    }
+                                ]
+                            },
+                            "Action": [
+                                "sns:Publish",
+                                "SNS:GetTopicAttributes",
+                                "SNS:SetTopicAttributes",
+                                "SNS:AddPermission",
+                                "SNS:RemovePermission",
+                                "SNS:DeleteTopic",
+                                "SNS:Subscribe",
+                                "SNS:ListSubscriptionsByTopic",
+                                "SNS:Publish",
+                                "SNS:Receive"
+                            ],
+                            "Resource": {
+                                "Ref": "SNSTopic"
+                            }
+                        }
+                    ]
+                },
+                "Topics": [
+                    {
+                        "Ref": "SNSTopic"
+                    }
+                ]
+            }
+        },
         "LambdaFunction": {
             "Type": "AWS::Lambda::Function",
             "Properties": {
@@ -1146,31 +1224,52 @@
                         "Fn::Join": [
                             "\n",
                             [
-                                "exports.emailBills = function (event, context, callback){ console.log('Hello'); callback(null); }"
+                                "exports.emailService = function (event, context, callback){ console.log('Hello'); callback(null); }"
                             ]
                         ]
                     }
                 },
-                "Handler": "index.emailBills",
+                "Handler": "index.emailService",
                 "Role": {
-                    "Fn::ImportValue": "LambdaServiceRole"
+                    "Fn::ImportValue": {
+                        "Fn::Sub": "${PolicyStackName}-LambdaServiceRoleArn"
+                    }
                 },
                 "Runtime": "nodejs12.x",
-                "FunctionName": "EmailBills",
-                "MemorySize": 128,
-                "Timeout": 20,
+				"FunctionName": "EmailService",
+				"MemorySize": 256,
+                "Timeout": 30,
                 "Environment": {
                     "Variables": {
                         "DomainName": {
                             "Ref": "DomainName"
                         }
                     }
-                },
-                "VpcConfig": {
-                    "SecurityGroupIds": [],
-                    "SubnetIds": []
-                },
+				},
+				"TracingConfig": {
+					"Mode": "Active"
+				 },
                 "Description": "Lambds Function that Sends an email containing list of Bills Due"
+            }
+        },
+        "LambdaPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "DependsOn": "SNSTopic",
+            "Properties": {
+                "Action": "lambda:InvokeFunction",
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "LambdaFunction",
+                        "Arn"
+                    ]
+                },
+                "Principal": "sns.amazonaws.com",
+                "SourceAccount": {
+                    "Ref": "AWS::AccountId"
+                },
+                "SourceArn": {
+                    "Ref": "SNSTopic"
+                }
             }
         }
     },

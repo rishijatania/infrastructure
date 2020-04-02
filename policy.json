@@ -6,6 +6,10 @@
             "Description": "Please enter the S3 Artifact bucket name for EC2",
             "Type": "String"
         },
+        "S3LambdaFunctionBucketName": {
+            "Description": "Please enter the S3 Lambda Function bucket name",
+            "Type": "String"
+        },
         "CircleCIIAMRoleName": {
             "Type": "String",
             "Description": "Name of existing circleci Role you want to add to the newly created Managed Policy",
@@ -64,6 +68,11 @@
             "Description": "Please enter the Name for Security group attached to the RDS instances",
             "Type": "String",
             "Default": "S3-App-Bucket"
+        },
+        "SNSTopicName": {
+            "Description": "Sns Topic Name",
+            "Type": "String",
+            "Default": "EmailTopic"
         }
     },
     "Resources": {
@@ -104,6 +113,29 @@
                                             "/*"
                                         ]
                                     ]
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            {
+                                                "Ref": "S3LambdaFunctionBucketName"
+                                            }
+                                        ]
+                                    ]
+                                },
+                                {
+                                    "Fn::Join": [
+                                        "",
+                                        [
+                                            "arn:aws:s3:::",
+                                            {
+                                                "Ref": "S3LambdaFunctionBucketName"
+                                            },
+                                            "/*"
+                                        ]
+                                    ]
                                 }
                             ]
                         }
@@ -125,6 +157,73 @@
                                 "Ref": "ArtifactS3CircleCIPolicyName"
                             }
                         ]
+                    ]
+                }
+            }
+        },
+        "CircleCILambdaPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "ManagedPolicyName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "CircleCILambdaPolicy"
+                        ]
+                    ]
+                },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "lambda:AddPermission",
+                                "lambda:PutFunctionConcurrency",
+                                "lambda:UpdateFunctionCode"
+                            ],
+                            "Resource": {
+                                "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*"
+                            }
+                        }
+                    ]
+                },
+                "Users": [
+                    {
+                        "Ref": "CircleCIIAMRoleName"
+                    }
+                ]
+            }
+        },
+        "EC2PublishSNSPolicy": {
+            "Type": "AWS::IAM::ManagedPolicy",
+            "Properties": {
+                "ManagedPolicyName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "EC2PublishSNSPolicy"
+                        ]
+                    ]
+                },
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "SNS:Publish"
+                            ],
+                            "Resource": {
+                                "Fn::Sub": "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicName}"
+                            }
+                        }
                     ]
                 }
             }
@@ -418,6 +517,33 @@
                 }
             }
         },
+        "LambdaServiceRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonSESFullAccess",
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+                ],
+                "RoleName": "LambdaServiceRole"
+            }
+        },
         "CodeDeployServiceRole": {
             "Type": "AWS::IAM::Role",
             "Properties": {
@@ -491,6 +617,9 @@
                     },
                     {
                         "Ref": "CloudWatchAgentServerPolicy"
+                    },
+                    {
+                        "Ref": "EC2PublishSNSPolicy"
                     }
                 ],
                 "RoleName": {
@@ -586,14 +715,14 @@
                     "Fn::Sub": "${AWS::StackName}-CodeDeployServiceRole"
                 }
             }
-		},
-		"CodeDeployServiceRoleArn": {
+        },
+        "CodeDeployServiceRoleArn": {
             "Description": "A reference to CodeDeployServiceRole Arn",
             "Value": {
-				"Fn::GetAtt": [
-					"CodeDeployServiceRole",
-					"Arn"
-				]
+                "Fn::GetAtt": [
+                    "CodeDeployServiceRole",
+                    "Arn"
+                ]
             },
             "Export": {
                 "Name": {
@@ -612,6 +741,20 @@
                 }
             }
         },
+        "EC2IAMRoleArn": {
+            "Description": "A reference to EC2IAMRoleArn",
+            "Value": {
+                "Fn::GetAtt": [
+                    "EC2IAMRole",
+                    "Arn"
+                ]
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-EC2IAMRoleArn"
+                }
+            }
+        },
         "IAMInstanceProfile": {
             "Description": "A reference to IAMInstanceProfile",
             "Value": {
@@ -620,6 +763,31 @@
             "Export": {
                 "Name": {
                     "Fn::Sub": "${AWS::StackName}-IAMInstanceProfile"
+                }
+            }
+        },
+        "LambdaServiceRole": {
+            "Description": "A reference to LambdaServiceRole",
+            "Value": {
+                "Ref": "LambdaServiceRole"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-LambdaServiceRole"
+                }
+            }
+        },
+        "LambdaServiceRoleArn": {
+            "Description": "A reference to LambdaServiceRoleArn",
+            "Value": {
+                "Fn::GetAtt": [
+                    "LambdaServiceRole",
+                    "Arn"
+                ]
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-LambdaServiceRoleArn"
                 }
             }
         }
