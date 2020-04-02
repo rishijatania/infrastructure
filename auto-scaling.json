@@ -1246,9 +1246,6 @@
                         }
                     }
 				},
-				"TracingConfig": {
-					"Mode": "Active"
-				 },
                 "Description": "Lambds Function that Sends an email containing list of Bills Due"
             }
         },
