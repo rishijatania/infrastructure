@@ -1,0 +1,322 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "",
+    "Parameters": {
+        "NetworkStackName": {
+            "Description": "Please enter the Network Stack Name",
+            "Type": "String",
+            "Default": "csye6225demo-network"
+        },
+        "PolicyStackName": {
+            "Description": "Please enter the Policy Stack Name",
+            "Type": "String",
+            "Default": "csye6225demo-policy"
+        },
+        "SQSReceiveMessageWaitTime": {
+            "Description": "Sqs Message wait time",
+            "Type": "Number",
+            "Default": 20
+        },
+        "SQSMessageRetentionPeriod": {
+            "Description": "Sqs message retention period",
+            "Type": "Number",
+            "Default": 3600
+        },
+        "SNSTopicName": {
+            "Description": "Sns Topic Name",
+            "Type": "String",
+            "Default": "EmailTopic"
+        },
+        "DomainName": {
+            "Description": "The Route 53 domain name",
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "SQSQueue": {
+            "Type": "AWS::SQS::Queue",
+            "Properties": {
+                "DelaySeconds": "0",
+                "MessageRetentionPeriod": {
+                    "Ref": "SQSMessageRetentionPeriod"
+                },
+                "QueueName": {
+                    "Fn::Sub": "${AWS::StackName}-SQSQueue"
+                },
+                "ReceiveMessageWaitTimeSeconds": {
+                    "Ref": "SQSReceiveMessageWaitTime"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}-SQSQueue"
+                        }
+                    }
+                ]
+            }
+        },
+        "SQSQueuePolicy": {
+            "Type": "AWS::SQS::QueuePolicy",
+            "DependsOn": "SQSQueue",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": [
+                                    {
+                                        "Fn::ImportValue": {
+                                            "Fn::Sub": "${PolicyStackName}-EC2IAMRoleArn"
+                                        }
+                                    }
+                                ]
+                            },
+                            "Action": [
+                                "sqs:SendMessage",
+                                "sqs:ReceiveMessage",
+                                "sqs:GetQueueAttributes",
+                                "sqs:GetQueueUrl",
+                                "sqs:DeleteMessage"
+                            ],
+                            "Resource": {
+                                "Fn::GetAtt": [
+                                    "SQSQueue",
+                                    "Arn"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Queues": [
+                    {
+                        "Ref": "SQSQueue"
+                    }
+                ]
+            }
+        },
+        "DynamoDBTable": {
+            "Type": "AWS::DynamoDB::Table",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "id",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "id",
+                        "KeyType": "HASH"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "5",
+                    "WriteCapacityUnits": "5"
+                },
+                "TableName": "csye6225",
+                "TimeToLiveSpecification": {
+                    "AttributeName": "ttl",
+                    "Enabled": true
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Sub": "${AWS::StackName}-DynamoDBTable"
+                        }
+                    }
+                ]
+            }
+        },
+        "SNSTopic": {
+            "Type": "AWS::SNS::Topic",
+            "DependsOn": "LambdaFunction",
+            "Properties": {
+                "DisplayName": {
+                    "Ref": "SNSTopicName"
+                },
+                "TopicName": {
+                    "Ref": "SNSTopicName"
+                },
+                "Subscription": [
+                    {
+                        "Endpoint": {
+                            "Fn::GetAtt": [
+                                "LambdaFunction",
+                                "Arn"
+                            ]
+                        },
+                        "Protocol": "lambda"
+                    }
+                ]
+            }
+        },
+        "SNSPermission": {
+            "Type": "AWS::SNS::TopicPolicy",
+            "DependsOn": "SNSTopic",
+            "Properties": {
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "AWS": [
+                                    {
+                                        "Fn::ImportValue": {
+                                            "Fn::Sub": "${PolicyStackName}-EC2IAMRoleArn"
+                                        }
+                                    }
+                                ]
+                            },
+                            "Action": [
+                                "sns:Publish",
+                                "SNS:GetTopicAttributes",
+                                "SNS:SetTopicAttributes",
+                                "SNS:AddPermission",
+                                "SNS:RemovePermission",
+                                "SNS:DeleteTopic",
+                                "SNS:Subscribe",
+                                "SNS:ListSubscriptionsByTopic",
+                                "SNS:Publish",
+                                "SNS:Receive"
+                            ],
+                            "Resource": {
+                                "Ref": "SNSTopic"
+                            }
+                        }
+                    ]
+                },
+                "Topics": [
+                    {
+                        "Ref": "SNSTopic"
+                    }
+                ]
+            }
+        },
+        "LambdaFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Properties": {
+                "Code": {
+                    "ZipFile": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "exports.emailService = function (event, context, callback){ console.log('Hello'); callback(null); }"
+                            ]
+                        ]
+                    }
+                },
+                "Handler": "index.emailService",
+                "Role": {
+                    "Fn::ImportValue": {
+                        "Fn::Sub": "${PolicyStackName}-LambdaServiceRoleArn"
+                    }
+                },
+                "Runtime": "nodejs12.x",
+                "FunctionName": "EmailService",
+                "MemorySize": 256,
+                "Timeout": 300,
+                "Environment": {
+                    "Variables": {
+                        "DomainName": {
+                            "Ref": "DomainName"
+                        }
+                    }
+                },
+                "Description": "Lambds Function that Sends an email containing list of Bills Due"
+            }
+        },
+        "LambdaPermission": {
+            "Type": "AWS::Lambda::Permission",
+            "DependsOn": "SNSTopic",
+            "Properties": {
+                "Action": "lambda:InvokeFunction",
+                "FunctionName": {
+                    "Fn::GetAtt": [
+                        "LambdaFunction",
+                        "Arn"
+                    ]
+                },
+                "Principal": "sns.amazonaws.com",
+                "SourceArn": {
+                    "Ref": "SNSTopic"
+                }
+            }
+        }
+    },
+    "Outputs": {
+        "LambdaFunction": {
+            "Description": "A reference to LambdaFunction",
+            "Value": {
+                "Ref": "LambdaFunction"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-LambdaFunction"
+                }
+            }
+        },
+        "SNSTopic": {
+            "Description": "A reference to SNSTopic",
+            "Value": {
+                "Ref": "SNSTopic"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-SNSTopic"
+                }
+            }
+        },
+        "DynamoDBTable": {
+            "Description": "A reference to DynamoDBTable",
+            "Value": {
+                "Ref": "DynamoDBTable"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-DynamoDBTable"
+                }
+            }
+		},
+		"DynamoDBTableEndpoint": {
+            "Description": "A reference to DynamoDBTable",
+            "Value": {
+                "Ref": "DynamoDBTable"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-DynamoDBTable"
+                }
+            }
+        },
+        "SQSQueueName": {
+            "Description": "A reference to SQSQueueName",
+            "Value": {
+                "Fn::GetAtt": [
+                    "SQSQueue",
+                    "QueueName"
+                ]
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-SQSQueueName"
+                }
+            }
+		},
+		"SQSQueue": {
+            "Description": "A reference to SQSQueue",
+            "Value": {
+                "Ref":"SQSQueue"
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Sub": "${AWS::StackName}-SQSQueue"
+                }
+            }
+        }
+    }
+}

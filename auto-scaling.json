@@ -11,6 +11,11 @@
             "Description": "Please enter the Policy Stack Name",
             "Type": "String",
             "Default": "csye6225demo-policy"
+		},
+		"LambdaStackName": {
+            "Description": "Please enter the Policy Stack Name",
+            "Type": "String",
+            "Default": "csye6225demo-lambda"
         },
         "EC2SecurityGroupName": {
             "Description": "Please enter the Group Name for Security group attached to the EC2 instances",
@@ -450,6 +455,32 @@
                                 "sudo echo export AWS_REGION=",
                                 {
                                     "Ref": "AWS::Region"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export DOMAIN_NAME=",
+                                {
+                                    "Ref": "DomainName"
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export SQS_QUEUE=",
+                                {
+                                    "Fn::ImportValue": {
+                                        "Fn::Sub": "${LambdaStackName}-SQSQueueName"
+                                    }
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export SQS_QUEUE_URL=",
+                                {
+                                    "Fn::ImportValue": {
+                                        "Fn::Sub": "${LambdaStackName}-SQSQueue"
+                                    }
+                                },
+                                " >> /etc/environment \n",
+                                "sudo echo export SNS_TOPIC_ARN=",
+                                {
+                                    "Fn::ImportValue": {
+                                        "Fn::Sub": "${LambdaStackName}-SNSTopic"
+                                    }
                                 },
                                 " >> /etc/environment \n",
                                 "sudo service codedeploy-agent start \n"
