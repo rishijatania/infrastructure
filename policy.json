@@ -218,7 +218,8 @@
                         {
                             "Effect": "Allow",
                             "Action": [
-                                "SNS:Publish"
+								"sns:Publish",
+								"sns:CreateTopic"
                             ],
                             "Resource": {
                                 "Fn::Sub": "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${SNSTopicName}"
@@ -590,7 +591,8 @@
             "Type": "AWS::IAM::Role",
             "DependsOn": [
                 "S3ManagedPolicy",
-                "CodeDeployEC2S3Policy"
+				"CodeDeployEC2S3Policy",
+				"EC2PublishSNSPolicy"
             ],
             "Properties": {
                 "AssumeRolePolicyDocument": {
@@ -622,7 +624,7 @@
                     },
                     {
                         "Ref": "EC2PublishSNSPolicy"
-                    }
+					}
                 ],
                 "RoleName": {
                     "Fn::Join": [
