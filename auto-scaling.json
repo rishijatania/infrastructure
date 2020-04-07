@@ -11,8 +11,8 @@
             "Description": "Please enter the Policy Stack Name",
             "Type": "String",
             "Default": "csye6225demo-policy"
-		},
-		"LambdaStackName": {
+        },
+        "LambdaStackName": {
             "Description": "Please enter the Policy Stack Name",
             "Type": "String",
             "Default": "csye6225demo-lambda"
@@ -53,6 +53,11 @@
         "RDSDBName": {
             "Description": "Please enter the DB Name for RDS instances",
             "Type": "String"
+        },
+        "RDSStorageEncrypted": {
+            "Description": "Indicates whether the DB instance is encrypted. By default, it isn't encrypted.",
+            "Type": "String",
+            "Default": "false"
         },
         "DBEngine": {
             "Description": "Please enter the DB Engine for RDS instances",
@@ -927,6 +932,9 @@
                 "MultiAZ": "false",
                 "PubliclyAccessible": {
                     "Ref": "RDSDBPubliclyAccessiblity"
+                },
+                "StorageEncrypted": {
+                    "Ref": "RDSStorageEncrypted"
                 },
                 "VPCSecurityGroups": [
                     {

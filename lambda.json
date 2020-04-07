@@ -281,17 +281,6 @@
                     "Fn::Sub": "${AWS::StackName}-DynamoDBTable"
                 }
             }
-		},
-		"DynamoDBTableEndpoint": {
-            "Description": "A reference to DynamoDBTable",
-            "Value": {
-                "Ref": "DynamoDBTable"
-            },
-            "Export": {
-                "Name": {
-                    "Fn::Sub": "${AWS::StackName}-DynamoDBTable"
-                }
-            }
         },
         "SQSQueueName": {
             "Description": "A reference to SQSQueueName",
@@ -306,11 +295,11 @@
                     "Fn::Sub": "${AWS::StackName}-SQSQueueName"
                 }
             }
-		},
-		"SQSQueue": {
+        },
+        "SQSQueue": {
             "Description": "A reference to SQSQueue",
             "Value": {
-                "Ref":"SQSQueue"
+                "Ref": "SQSQueue"
             },
             "Export": {
                 "Name": {
