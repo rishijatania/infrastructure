@@ -15,7 +15,7 @@ Default region name [None]: <region>
 Default output format [None]: 
 ```
 
-## Steps to create AWS Infra Stack
+## Steps to create AWS Infra Stack  
 1. Create CloudFormation template networking.json or networking.yaml that can be used to setup required networking resources.
 
 2. Create Cloud formation Stack using the following command:
@@ -29,7 +29,7 @@ $ aws cloudformation create-stack \
 ```sh
 $ aws cloudformation delete-stack --stack-name csye6225demo 
 ```
- ## Variables provided in CLI
+## Variables provided in CLI  
  ```
  Template Name,  
  AWS Region,  
@@ -40,9 +40,30 @@ $ aws cloudformation delete-stack --stack-name csye6225demo
  subnet3 CIDER,  
  name of the JSON file
  ```
- ## Networking setup
- 1. Create a VPC(vpc)
- 2. Three subnets created in the VPC
- 3. Internet gateway, along with Internet gatewayVPC attachment
- 4. Public Route table along with all the subnets attached to this table 
- 5. Public Route in the public Router table with destination CIDR block 0.0.0.0/0 and internet gateway created as target.
+## Networking setup  
+1. Create a VPC(vpc)
+2. Three subnets created in the VPC
+3. Internet gateway, along with Internet gatewayVPC attachment
+4. Public Route table along with all the subnets attached to this table 
+5. Public Route in the public Router table with destination CIDR block 0.0.0.0/0 and internet gateway created as target.
+
+## Import Ceritificate Using AWS CLI
+The following example shows how to import a certificate using the AWS Command Line Interface (AWS CLI). The example assumes the following: 
+
+1. The PEM-encoded certificate is stored in a file named Certificate.pem. Use the following command to export your .crt or.cert file into .pem file
+```bash
+openssl x509 -in <youCrtFile>.crt -out <youCertName>.pem
+```
+
+2. The PEM-encoded certificate chain is stored in a file named CertificateChain.pem. Use the following command to export your .ca-bundle file into .pem file
+```bash
+openssl x509 -in <yourCaBundleFile>.ca-bundle -out <yourCertChainName>.pem
+```
+
+3. The PEM-encoded, unencrypted private key is stored in a file named PrivateKey.pem.
+
+4. THe following command imports the certificate to Amazon Certificate Manager.
+```bash
+$ aws acm import-certificate --certificate file://<youCertName>.pem --certificate-chain file://<yourCertChainName>.pem --private-key file:/<yourPrivateKey>.pem
+  	
+```

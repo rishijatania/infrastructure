@@ -11,8 +11,8 @@
             "Description": "Please enter the Policy Stack Name",
             "Type": "String",
             "Default": "csye6225demo-policy"
-		},
-		"LambdaStackName": {
+        },
+        "LambdaStackName": {
             "Description": "Please enter the Policy Stack Name",
             "Type": "String",
             "Default": "csye6225demo-lambda"
@@ -53,6 +53,11 @@
         "RDSDBName": {
             "Description": "Please enter the DB Name for RDS instances",
             "Type": "String"
+        },
+        "RDSStorageEncrypted": {
+            "Description": "Indicates whether the DB instance is encrypted. By default, it isn't encrypted.",
+            "Type": "String",
+            "Default": "true"
         },
         "DBEngine": {
             "Description": "Please enter the DB Engine for RDS instances",
@@ -240,12 +245,12 @@
         "ApplicationLoadBalancerListenerProtocol": {
             "Description": "Load Balancer Listener Protocol",
             "Type": "String",
-            "Default": "HTTP"
+            "Default": "HTTPS"
         },
         "ApplicationLoadBalancerListenerPort": {
             "Description": "Load Balancer Listener Port",
             "Type": "Number",
-            "Default": 80
+            "Default": 443
         },
         "HealthCheckIntervalSeconds": {
             "Description": "Health Check Interval Seconds",
@@ -271,6 +276,10 @@
             "Description": "HealthCheck Path",
             "Type": "String",
             "Default": "/v1/check"
+        },
+        "CertificateArn": {
+            "Description": "HTTPS Certificate Arn",
+            "Type": "String"
         }
     },
     "Resources": {
@@ -646,7 +655,14 @@
                 },
                 "Protocol": {
                     "Ref": "ApplicationLoadBalancerListenerProtocol"
-                }
+                },
+                "Certificates": [
+                    {
+                        "CertificateArn": {
+                            "Ref": "CertificateArn"
+                        }
+                    }
+                ]
             }
         },
         "LoadBalancerTargetGroup": {
@@ -722,8 +738,8 @@
                 "SecurityGroupIngress": [
                     {
                         "IpProtocol": "tcp",
-                        "FromPort": 80,
-                        "ToPort": 80,
+                        "FromPort": 443,
+                        "ToPort": 443,
                         "CidrIp": "0.0.0.0/0"
                     }
                 ],
@@ -928,9 +944,41 @@
                 "PubliclyAccessible": {
                     "Ref": "RDSDBPubliclyAccessiblity"
                 },
+                "StorageEncrypted": {
+                    "Ref": "RDSStorageEncrypted"
+                },
                 "VPCSecurityGroups": [
                     {
                         "Ref": "SGForRDSInstance"
+                    }
+                ],
+                "DBParameterGroupName": {
+                    "Ref": "RDSDBParameterGroup"
+                }
+            }
+        },
+        "RDSDBParameterGroup": {
+            "Type": "AWS::RDS::DBParameterGroup",
+            "Properties": {
+                "Description": "RDS Parameter Group",
+                "Family": "mysql8.0",
+                "Parameters": {
+                    "performance_schema": "1"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Fn::Join": [
+                                "-",
+                                [
+                                    {
+                                        "Ref": "AWS::StackName"
+                                    },
+                                    "RDSDBParameterGroup"
+                                ]
+                            ]
+                        }
                     }
                 ]
             }
